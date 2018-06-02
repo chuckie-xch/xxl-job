@@ -51,7 +51,7 @@ public class JobFailMonitorHelper {
 								if (jobLogId==null || jobLogId==0) {
 									continue;
 								}
-								XxlJobLog log = XxlJobDynamicScheduler.xxlJobLogDao.load(jobLogId);
+								XxlJobLog log = XxlJobDynamicScheduler.xxlJobLogMapper.load(jobLogId);
 								if (log == null) {
 									continue;
 								}
@@ -85,7 +85,7 @@ public class JobFailMonitorHelper {
 				int drainToNum = getInstance().queue.drainTo(jobLogIdList);
 				if (jobLogIdList!=null && jobLogIdList.size()>0) {
 					for (Integer jobLogId: jobLogIdList) {
-						XxlJobLog log = XxlJobDynamicScheduler.xxlJobLogDao.load(jobLogId);
+						XxlJobLog log = XxlJobDynamicScheduler.xxlJobLogMapper.load(jobLogId);
 						if (ReturnT.FAIL_CODE == log.getTriggerCode()|| ReturnT.FAIL_CODE==log.getHandleCode()) {
 							// job fail,
 							failAlarm(log);
@@ -148,12 +148,12 @@ public class JobFailMonitorHelper {
 	private void failAlarm(XxlJobLog jobLog){
 
 		// send monitor email
-		XxlJobInfo info = XxlJobDynamicScheduler.xxlJobInfoDao.loadById(jobLog.getJobId());
+		XxlJobInfo info = XxlJobDynamicScheduler.xxlJobInfoMapper.loadById(jobLog.getJobId());
 		if (info!=null && info.getAlarmEmail()!=null && info.getAlarmEmail().trim().length()>0) {
 
 			Set<String> emailSet = new HashSet<String>(Arrays.asList(info.getAlarmEmail().split(",")));
 			for (String email: emailSet) {
-				XxlJobGroup group = XxlJobDynamicScheduler.xxlJobGroupDao.load(Integer.valueOf(info.getJobGroup()));
+				XxlJobGroup group = XxlJobDynamicScheduler.xxlJobGroupMapper.load(Integer.valueOf(info.getJobGroup()));
 
 				String title = I18nUtil.getString("jobconf_monitor");
 				String content = MessageFormat.format(mailBodyTemplate, group!=null?group.getTitle():"null", info.getId(), info.getJobDesc());

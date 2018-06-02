@@ -1,6 +1,5 @@
 package com.xxl.job.admin.core.util;
 
-import com.xxl.job.admin.core.conf.XxlJobAdminConfig;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -17,6 +16,19 @@ import java.nio.charset.Charset;
 public class MailUtil {
 	private static Logger logger = LoggerFactory.getLogger(MailUtil.class);
 	
+	private static String host;
+	private static String port;
+	private static String username;
+	private static String password;
+	private static String sendNick;
+	static{
+		host = PropertiesUtil.getString("xxl.job.mail.host");
+		port = PropertiesUtil.getString("xxl.job.mail.port");
+		username = PropertiesUtil.getString("xxl.job.mail.username");
+		password = PropertiesUtil.getString("xxl.job.mail.password");
+		sendNick = PropertiesUtil.getString("xxl.job.mail.sendNick");
+	}
+
 	/**
 	 *
 	 * @param toAddress		收件人邮箱
@@ -34,19 +46,13 @@ public class MailUtil {
 			//email.setTLS(true);		// 是否TLS校验，，某些邮箱需要TLS安全校验，同理有SSL校验
 			//email.setSSL(true);
 
-			email.setHostName(XxlJobAdminConfig.getAdminConfig().getMailHost());
-
-			if (XxlJobAdminConfig.getAdminConfig().isMailSSL()) {
-				email.setSslSmtpPort(XxlJobAdminConfig.getAdminConfig().getMailPort());
-				email.setSSLOnConnect(true);
-			} else {
-				email.setSmtpPort(Integer.valueOf(XxlJobAdminConfig.getAdminConfig().getMailPort()));
-			}
-
-			email.setAuthenticator(new DefaultAuthenticator(XxlJobAdminConfig.getAdminConfig().getMailUsername(), XxlJobAdminConfig.getAdminConfig().getMailPassword()));
+			email.setHostName(host);
+			email.setSmtpPort(Integer.valueOf(port));
+			//email.setSslSmtpPort(port);
+			email.setAuthenticator(new DefaultAuthenticator(username, password));
 			email.setCharset(Charset.defaultCharset().name());
 
-			email.setFrom(XxlJobAdminConfig.getAdminConfig().getMailUsername(), XxlJobAdminConfig.getAdminConfig().getMailSendNick());
+			email.setFrom(username, sendNick);
 			email.addTo(toAddress);
 			email.setSubject(mailSubject);
 			email.setMsg(mailBody);

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,6 +22,7 @@ import java.io.OutputStream;
  * Created by xuxueli on 17/5/10.
  */
 @Controller
+@ApiIgnore
 public class JobApiController {
     private static Logger logger = LoggerFactory.getLogger(JobApiController.class);
 
@@ -48,7 +50,7 @@ public class JobApiController {
     }
 
     @RequestMapping(AdminBiz.MAPPING)
-    @PermessionLimit(limit=false)
+    //@PermessionLimit(limit=false)
     public void api(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         // invoke

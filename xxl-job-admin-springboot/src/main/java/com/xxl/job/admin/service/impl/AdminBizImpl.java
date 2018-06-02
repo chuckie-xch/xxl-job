@@ -3,9 +3,9 @@ package com.xxl.job.admin.service.impl;
 import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.core.model.XxlJobLog;
 import com.xxl.job.admin.core.util.I18nUtil;
-import com.xxl.job.admin.dao.XxlJobInfoDao;
-import com.xxl.job.admin.dao.XxlJobLogDao;
-import com.xxl.job.admin.dao.XxlJobRegistryDao;
+import com.xxl.job.admin.mapper.XxlJobInfoMapper;
+import com.xxl.job.admin.mapper.XxlJobLogMapper;
+import com.xxl.job.admin.mapper.XxlJobRegistryMapper;
 import com.xxl.job.admin.service.XxlJobService;
 import com.xxl.job.core.biz.AdminBiz;
 import com.xxl.job.core.biz.model.HandleCallbackParam;
@@ -30,11 +30,11 @@ public class AdminBizImpl implements AdminBiz {
     private static Logger logger = LoggerFactory.getLogger(AdminBizImpl.class);
 
     @Resource
-    public XxlJobLogDao xxlJobLogDao;
+    public XxlJobLogMapper xxlJobLogMapper;
     @Resource
-    private XxlJobInfoDao xxlJobInfoDao;
+    private XxlJobInfoMapper xxlJobInfoMapper;
     @Resource
-    private XxlJobRegistryDao xxlJobRegistryDao;
+    private XxlJobRegistryMapper xxlJobRegistryMapper;
     @Resource
     private XxlJobService xxlJobService;
 
@@ -44,7 +44,7 @@ public class AdminBizImpl implements AdminBiz {
         for (HandleCallbackParam handleCallbackParam: callbackParamList) {
             ReturnT<String> callbackResult = callback(handleCallbackParam);
             logger.info(">>>>>>>>> JobApiController.callback {}, handleCallbackParam={}, callbackResult={}",
-                    (callbackResult.getCode()==IJobHandler.SUCCESS.getCode()?"success":"fail"), handleCallbackParam, callbackResult);
+                    (callbackResult.getCode()== IJobHandler.SUCCESS.getCode()?"success":"fail"), handleCallbackParam, callbackResult);
         }
 
         return ReturnT.SUCCESS;
@@ -52,7 +52,7 @@ public class AdminBizImpl implements AdminBiz {
 
     private ReturnT<String> callback(HandleCallbackParam handleCallbackParam) {
         // valid log item
-        XxlJobLog log = xxlJobLogDao.load(handleCallbackParam.getLogId());
+        XxlJobLog log = xxlJobLogMapper.load(handleCallbackParam.getLogId());
         if (log == null) {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "log item not found.");
         }
@@ -63,7 +63,7 @@ public class AdminBizImpl implements AdminBiz {
         // trigger success, to trigger child job
         String callbackMsg = null;
         if (IJobHandler.SUCCESS.getCode() == handleCallbackParam.getExecuteResult().getCode()) {
-            XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(log.getJobId());
+            XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(log.getJobId());
             if (xxlJobInfo!=null && StringUtils.isNotBlank(xxlJobInfo.getChildJobId())) {
                 callbackMsg = "<br><br><span style=\"color:#00c0ef;\" > >>>>>>>>>>>"+ I18nUtil.getString("jobconf_trigger_child_run") +"<<<<<<<<<<< </span><br>";
 
@@ -78,7 +78,7 @@ public class AdminBizImpl implements AdminBiz {
                                 (i+1),
                                 childJobIds.length,
                                 childJobIds[i],
-                                (triggerChildResult.getCode()==ReturnT.SUCCESS_CODE?I18nUtil.getString("system_success"):I18nUtil.getString("system_fail")),
+                                (triggerChildResult.getCode()== ReturnT.SUCCESS_CODE? I18nUtil.getString("system_success"): I18nUtil.getString("system_fail")),
                                 triggerChildResult.getMsg());
                     } else {
                         callbackMsg += MessageFormat.format(I18nUtil.getString("jobconf_callback_child_msg2"),
@@ -94,7 +94,7 @@ public class AdminBizImpl implements AdminBiz {
             callbackMsg = "<br><br><span style=\"color:#F39C12;\" > >>>>>>>>>>>"+ I18nUtil.getString("jobconf_exe_fail_retry") +"<<<<<<<<<<< </span><br>";
 
             callbackMsg += MessageFormat.format(I18nUtil.getString("jobconf_callback_msg1"),
-                   (retryTriggerResult.getCode()==ReturnT.SUCCESS_CODE?I18nUtil.getString("system_success"):I18nUtil.getString("system_fail")), retryTriggerResult.getMsg());
+                   (retryTriggerResult.getCode()== ReturnT.SUCCESS_CODE? I18nUtil.getString("system_success"): I18nUtil.getString("system_fail")), retryTriggerResult.getMsg());
         }
 
         // handle msg
@@ -113,23 +113,23 @@ public class AdminBizImpl implements AdminBiz {
         log.setHandleTime(new Date());
         log.setHandleCode(handleCallbackParam.getExecuteResult().getCode());
         log.setHandleMsg(handleMsg.toString());
-        xxlJobLogDao.updateHandleInfo(log);
+        xxlJobLogMapper.updateHandleInfo(log);
 
         return ReturnT.SUCCESS;
     }
 
     @Override
     public ReturnT<String> registry(RegistryParam registryParam) {
-        int ret = xxlJobRegistryDao.registryUpdate(registryParam.getRegistGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
+        int ret = xxlJobRegistryMapper.registryUpdate(registryParam.getRegistGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
         if (ret < 1) {
-            xxlJobRegistryDao.registrySave(registryParam.getRegistGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
+            xxlJobRegistryMapper.registrySave(registryParam.getRegistGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
         }
         return ReturnT.SUCCESS;
     }
 
     @Override
     public ReturnT<String> registryRemove(RegistryParam registryParam) {
-        xxlJobRegistryDao.registryDelete(registryParam.getRegistGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
+        xxlJobRegistryMapper.registryDelete(registryParam.getRegistGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
         return ReturnT.SUCCESS;
     }
 

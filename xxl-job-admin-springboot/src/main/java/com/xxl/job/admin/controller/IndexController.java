@@ -5,15 +5,13 @@ import com.xxl.job.admin.controller.interceptor.PermissionInterceptor;
 import com.xxl.job.admin.core.util.I18nUtil;
 import com.xxl.job.admin.service.XxlJobService;
 import com.xxl.job.core.biz.model.ReturnT;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -26,29 +24,28 @@ import java.util.Map;
  * index controller
  * @author xuxueli 2015-12-19 16:13:16
  */
-@Controller
+@RestController
+@Api(description="首页接口")
 public class IndexController {
 
 	@Resource
 	private XxlJobService xxlJobService;
 
-	@RequestMapping("/")
-	public String index(Model model) {
-
+	@ApiOperation(value="dashboard", notes="")
+	@GetMapping("")
+	public Map<String, Object> index() {
 		Map<String, Object> dashboardMap = xxlJobService.dashboardInfo();
-		model.addAllAttributes(dashboardMap);
-
-		return "index";
+		return dashboardMap;
 	}
 
-    @RequestMapping("/chartInfo")
-	@ResponseBody
-	public ReturnT<Map<String, Object>> chartInfo(Date startDate, Date endDate) {
-        ReturnT<Map<String, Object>> chartInfo = xxlJobService.chartInfo(startDate, endDate);
-        return chartInfo;
+	@ApiOperation(value="调度报表日期选择", notes="")
+	@GetMapping("/triggerChartDate")
+	public ReturnT<Map<String, Object>> triggerChartDate(@RequestParam Date startDate,@RequestParam Date endDate) {
+        ReturnT<Map<String, Object>> triggerChartDate = xxlJobService.triggerChartDate(startDate, endDate);
+        return triggerChartDate;
     }
 	
-	@RequestMapping("/toLogin")
+	/*@RequestMapping("/toLogin")
 	@PermessionLimit(limit=false)
 	public String toLogin(Model model, HttpServletRequest request) {
 		if (PermissionInterceptor.ifLogin(request)) {
@@ -57,8 +54,7 @@ public class IndexController {
 		return "login";
 	}
 	
-	@RequestMapping(value="login", method=RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value="login", method= RequestMethod.POST)
 	@PermessionLimit(limit=false)
 	public ReturnT<String> loginDo(HttpServletRequest request, HttpServletResponse response, String userName, String password, String ifRemember){
 		// valid
@@ -80,25 +76,24 @@ public class IndexController {
 		return ReturnT.SUCCESS;
 	}
 	
-	@RequestMapping(value="logout", method=RequestMethod.POST)
-	@ResponseBody
+	@RequestMapping(value="logout", method= RequestMethod.POST)
 	@PermessionLimit(limit=false)
 	public ReturnT<String> logout(HttpServletRequest request, HttpServletResponse response){
 		if (PermissionInterceptor.ifLogin(request)) {
 			PermissionInterceptor.logout(request, response);
 		}
 		return ReturnT.SUCCESS;
-	}
+	}*/
 	
-	@RequestMapping("/help")
+	/*@RequestMapping("/help")
 	public String help() {
 
-		/*if (!PermissionInterceptor.ifLogin(request)) {
+		*//*if (!PermissionInterceptor.ifLogin(request)) {
 			return "redirect:/toLogin";
-		}*/
+		}*//*
 
 		return "help";
-	}
+	}*/
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {

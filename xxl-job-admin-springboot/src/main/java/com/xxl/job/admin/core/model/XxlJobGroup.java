@@ -1,5 +1,7 @@
 package com.xxl.job.admin.core.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -9,13 +11,20 @@ import java.util.List;
 /**
  * Created by xuxueli on 16/9/30.
  */
+@ApiModel(value="执行器参数", description = "执行器参数描述")
 public class XxlJobGroup {
 
+    @ApiModelProperty(value="主键ID", required = true)
     private int id;
+    @ApiModelProperty(value="AppName", required = true)
     private String appName;
+    @ApiModelProperty(value="名称", required = true)
     private String title;
+    @ApiModelProperty(value="排序", required = true)
     private int order;
+    @ApiModelProperty(value="注册方式", required = true)
     private int addressType;    // 执行器地址类型：0=自动注册、1=手动录入
+    @ApiModelProperty(value="机器地址列表", required = true)
     private String addressList;    // 执行器地址列表，多地址逗号分隔(手动录入)
 
     // registry list

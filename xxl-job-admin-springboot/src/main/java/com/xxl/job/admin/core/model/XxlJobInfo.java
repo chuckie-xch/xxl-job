@@ -1,29 +1,43 @@
 package com.xxl.job.admin.core.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.util.Date;
 
 /**
  * xxl-job info
  * @author xuxueli  2016-1-12 18:25:49
  */
+@ApiModel(value="任务参数", description = "任务参数描述")
 public class XxlJobInfo {
-	
+
+	@ApiModelProperty(value="主键ID", required = true)
 	private int id;				// 主键ID	    (JobKey.name)
-	
+
+	@ApiModelProperty(value="执行器主键ID", required = true)
 	private int jobGroup;		// 执行器主键ID	(JobKey.group)
+	@ApiModelProperty(value="任务执行CRON表达式", required = true)
 	private String jobCron;		// 任务执行CRON表达式 【base on quartz】
 	private String jobDesc;
 	
 	private Date addTime;
 	private Date updateTime;
-	
+
+	@ApiModelProperty(value="负责人", required = true)
 	private String author;		// 负责人
+	@ApiModelProperty(value="报警邮件", required = true)
 	private String alarmEmail;	// 报警邮件
 
+	@ApiModelProperty(value="执行器路由策略", required = true)
 	private String executorRouteStrategy;	// 执行器路由策略
+	@ApiModelProperty(value="执行器，任务Handler名称", required = true)
 	private String executorHandler;		    // 执行器，任务Handler名称
+	@ApiModelProperty(value="执行器，任务参数", required = true)
 	private String executorParam;		    // 执行器，任务参数
+	@ApiModelProperty(value="阻塞处理策略", required = true)
 	private String executorBlockStrategy;	// 阻塞处理策略
+	@ApiModelProperty(value="失败处理策略", required = true)
 	private String executorFailStrategy;	// 失败处理策略
 	
 	private String glueType;		// GLUE类型	#com.xxl.job.core.glue.GlueTypeEnum

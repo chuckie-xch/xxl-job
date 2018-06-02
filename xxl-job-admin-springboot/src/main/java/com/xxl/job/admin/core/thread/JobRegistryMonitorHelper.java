@@ -36,15 +36,15 @@ public class JobRegistryMonitorHelper {
 				while (!toStop) {
 					try {
 						// auto registry group
-						List<XxlJobGroup> groupList = XxlJobDynamicScheduler.xxlJobGroupDao.findByAddressType(0);
+						List<XxlJobGroup> groupList = XxlJobDynamicScheduler.xxlJobGroupMapper.findByAddressType(0);
 						if (CollectionUtils.isNotEmpty(groupList)) {
 
 							// remove dead address (admin/executor)
-							XxlJobDynamicScheduler.xxlJobRegistryDao.removeDead(RegistryConfig.DEAD_TIMEOUT);
+							XxlJobDynamicScheduler.xxlJobRegistryMapper.removeDead(RegistryConfig.DEAD_TIMEOUT);
 
 							// fresh online address (admin/executor)
 							HashMap<String, List<String>> appAddressMap = new HashMap<String, List<String>>();
-							List<XxlJobRegistry> list = XxlJobDynamicScheduler.xxlJobRegistryDao.findAll(RegistryConfig.DEAD_TIMEOUT);
+							List<XxlJobRegistry> list = XxlJobDynamicScheduler.xxlJobRegistryMapper.findAll(RegistryConfig.DEAD_TIMEOUT);
 							if (list != null) {
 								for (XxlJobRegistry item: list) {
 									if (RegistryConfig.RegistType.EXECUTOR.name().equals(item.getRegistryGroup())) {
@@ -71,7 +71,7 @@ public class JobRegistryMonitorHelper {
 									addressListStr = StringUtils.join(registryList, ",");
 								}
 								group.setAddressList(addressListStr);
-								XxlJobDynamicScheduler.xxlJobGroupDao.update(group);
+								XxlJobDynamicScheduler.xxlJobGroupMapper.update(group);
 							}
 						}
 					} catch (Exception e) {

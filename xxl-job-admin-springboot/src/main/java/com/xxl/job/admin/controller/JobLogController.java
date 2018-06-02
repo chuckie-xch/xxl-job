@@ -5,22 +5,22 @@ import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.core.model.XxlJobLog;
 import com.xxl.job.admin.core.schedule.XxlJobDynamicScheduler;
 import com.xxl.job.admin.core.util.I18nUtil;
-import com.xxl.job.admin.dao.XxlJobGroupDao;
-import com.xxl.job.admin.dao.XxlJobInfoDao;
-import com.xxl.job.admin.dao.XxlJobLogDao;
+import com.xxl.job.admin.mapper.XxlJobGroupMapper;
+import com.xxl.job.admin.mapper.XxlJobInfoMapper;
+import com.xxl.job.admin.mapper.XxlJobLogMapper;
 import com.xxl.job.core.biz.ExecutorBiz;
 import com.xxl.job.core.biz.model.LogResult;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.glue.GlueTypeEnum;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -33,45 +33,46 @@ import java.util.Map;
  * index controller
  * @author xuxueli 2015-12-19 16:13:16
  */
-@Controller
+@RestController
 @RequestMapping("/joblog")
+@Api(description="调度日志接口")
 public class JobLogController {
 	private static Logger logger = LoggerFactory.getLogger(JobLogController.class);
 
 	@Resource
-	private XxlJobGroupDao xxlJobGroupDao;
+	private XxlJobGroupMapper xxlJobGroupMapper;
 	@Resource
-	public XxlJobInfoDao xxlJobInfoDao;
+	public XxlJobInfoMapper xxlJobInfoMapper;
 	@Resource
-	public XxlJobLogDao xxlJobLogDao;
+	public XxlJobLogMapper xxlJobLogMapper;
 
-	@RequestMapping
-	public String index(Model model, @RequestParam(required = false, defaultValue = "0") Integer jobId) {
-
+	@ApiOperation(value="查询调度日志接口", notes="")
+	@GetMapping("")
+	public Map<String,Object> index(@RequestParam(required = false, defaultValue = "0") Integer jobId) {
+		Map<String,Object> map = new HashMap<>();
 		// 执行器列表
-		List<XxlJobGroup> jobGroupList =  xxlJobGroupDao.findAll();
-		model.addAttribute("JobGroupList", jobGroupList);
-		model.addAttribute("GlueTypeEnum", GlueTypeEnum.values());
+		List<XxlJobGroup> jobGroupList =  xxlJobGroupMapper.findAll();
+		map.put("JobGroupList", jobGroupList);
+		map.put("GlueTypeEnum", GlueTypeEnum.values());
 
 		// 任务
 		if (jobId > 0) {
-			XxlJobInfo jobInfo = xxlJobInfoDao.loadById(jobId);
-			model.addAttribute("jobInfo", jobInfo);
+			XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(jobId);
+			map.put("jobInfo", jobInfo);
 		}
-
-		return "joblog/joblog.index";
+		return map;
 	}
 
-	@RequestMapping("/getJobsByGroup")
-	@ResponseBody
-	public ReturnT<List<XxlJobInfo>> getJobsByGroup(int jobGroup){
-		List<XxlJobInfo> list = xxlJobInfoDao.getJobsByGroup(jobGroup);
+	@ApiOperation(value="根据执行器查询调度日志接口", notes="")
+	@GetMapping("/getJobsByGroup/{jobGroup}")
+	public ReturnT<List<XxlJobInfo>> getJobsByGroup(@PathVariable int jobGroup){
+		List<XxlJobInfo> list = xxlJobInfoMapper.getJobsByGroup(jobGroup);
 		return new ReturnT<List<XxlJobInfo>>(list);
 	}
-	
-	@RequestMapping("/pageList")
-	@ResponseBody
-	public Map<String, Object> pageList(@RequestParam(required = false, defaultValue = "0") int start,  
+
+	@ApiOperation(value="搜索调度日志接口", notes="")
+	@GetMapping("/pageList")
+	public Map<String, Object> pageList(@RequestParam(required = false, defaultValue = "0") int start,
 			@RequestParam(required = false, defaultValue = "10") int length,
 			int jobGroup, int jobId, int logStatus, String filterTime) {
 		
@@ -89,8 +90,8 @@ public class JobLogController {
 		}
 		
 		// page query
-		List<XxlJobLog> list = xxlJobLogDao.pageList(start, length, jobGroup, jobId, triggerTimeStart, triggerTimeEnd, logStatus);
-		int list_count = xxlJobLogDao.pageListCount(start, length, jobGroup, jobId, triggerTimeStart, triggerTimeEnd, logStatus);
+		List<XxlJobLog> list = xxlJobLogMapper.pageList(start, length, jobGroup, jobId, triggerTimeStart, triggerTimeEnd, logStatus);
+		int list_count = xxlJobLogMapper.pageListCount(start, length, jobGroup, jobId, triggerTimeStart, triggerTimeEnd, logStatus);
 		
 		// package result
 		Map<String, Object> maps = new HashMap<String, Object>();
@@ -100,26 +101,26 @@ public class JobLogController {
 		return maps;
 	}
 
-	@RequestMapping("/logDetailPage")
-	public String logDetailPage(int id, Model model){
-
+	@ApiOperation(value="查询执行日志接口", notes="")
+	@GetMapping("/logDetailPage/{id}")
+	public Map<String,Object> logDetailPage(@PathVariable int id){
+		Map<String,Object> map = new HashMap<>();
 		// base check
 		ReturnT<String> logStatue = ReturnT.SUCCESS;
-		XxlJobLog jobLog = xxlJobLogDao.load(id);
+		XxlJobLog jobLog = xxlJobLogMapper.load(id);
 		if (jobLog == null) {
             throw new RuntimeException(I18nUtil.getString("joblog_logid_unvalid"));
 		}
-
-        model.addAttribute("triggerCode", jobLog.getTriggerCode());
-        model.addAttribute("handleCode", jobLog.getHandleCode());
-        model.addAttribute("executorAddress", jobLog.getExecutorAddress());
-        model.addAttribute("triggerTime", jobLog.getTriggerTime().getTime());
-        model.addAttribute("logId", jobLog.getId());
-		return "joblog/joblog.detail";
+		map.put("triggerCode", jobLog.getTriggerCode());
+		map.put("handleCode", jobLog.getHandleCode());
+		map.put("executorAddress", jobLog.getExecutorAddress());
+		map.put("triggerTime", jobLog.getTriggerTime().getTime());
+		map.put("logId", jobLog.getId());
+		return map;
 	}
 
-	@RequestMapping("/logDetailCat")
-	@ResponseBody
+	@ApiOperation(value="日志详情接口", notes="")
+	@GetMapping("/logDetailCat")
 	public ReturnT<LogResult> logDetailCat(String executorAddress, long triggerTime, int logId, int fromLineNum){
 		try {
 			ExecutorBiz executorBiz = XxlJobDynamicScheduler.getExecutorBiz(executorAddress);
@@ -127,7 +128,7 @@ public class JobLogController {
 
 			// is end
             if (logResult.getContent()!=null && logResult.getContent().getFromLineNum() > logResult.getContent().getToLineNum()) {
-                XxlJobLog jobLog = xxlJobLogDao.load(logId);
+                XxlJobLog jobLog = xxlJobLogMapper.load(logId);
                 if (jobLog.getHandleCode() > 0) {
                     logResult.getContent().setEnd(true);
                 }
@@ -140,12 +141,12 @@ public class JobLogController {
 		}
 	}
 
-	@RequestMapping("/logKill")
-	@ResponseBody
-	public ReturnT<String> logKill(int id){
+	@ApiOperation(value="调度日志终止接口", notes="")
+	@GetMapping("/logKill/{id}")
+	public ReturnT<String> logKill(@PathVariable int id){
 		// base check
-		XxlJobLog log = xxlJobLogDao.load(id);
-		XxlJobInfo jobInfo = xxlJobInfoDao.loadById(log.getJobId());
+		XxlJobLog log = xxlJobLogMapper.load(id);
+		XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(log.getJobId());
 		if (jobInfo==null) {
 			return new ReturnT<String>(500, I18nUtil.getString("jobinfo_glue_jobid_unvalid"));
 		}
@@ -167,16 +168,16 @@ public class JobLogController {
 			log.setHandleCode(ReturnT.FAIL_CODE);
 			log.setHandleMsg( I18nUtil.getString("joblog_kill_log_byman")+":" + (runResult.getMsg()!=null?runResult.getMsg():""));
 			log.setHandleTime(new Date());
-			xxlJobLogDao.updateHandleInfo(log);
+			xxlJobLogMapper.updateHandleInfo(log);
 			return new ReturnT<String>(runResult.getMsg());
 		} else {
 			return new ReturnT<String>(500, runResult.getMsg());
 		}
 	}
 
-	@RequestMapping("/clearLog")
-	@ResponseBody
-	public ReturnT<String> clearLog(int jobGroup, int jobId, int type){
+	@ApiOperation(value="清理调度日志备注接口", notes="")
+	@DeleteMapping("/clearLog")
+	public ReturnT<String> clearLog(@RequestParam int jobGroup,@RequestParam int jobId,@RequestParam int type){
 
 		Date clearBeforeTime = null;
 		int clearBeforeNum = 0;
@@ -202,7 +203,7 @@ public class JobLogController {
 			return new ReturnT<String>(ReturnT.FAIL_CODE, I18nUtil.getString("joblog_clean_type_unvalid"));
 		}
 
-		xxlJobLogDao.clearLog(jobGroup, jobId, clearBeforeTime, clearBeforeNum);
+		xxlJobLogMapper.clearLog(jobGroup, jobId, clearBeforeTime, clearBeforeNum);
 		return ReturnT.SUCCESS;
 	}
 

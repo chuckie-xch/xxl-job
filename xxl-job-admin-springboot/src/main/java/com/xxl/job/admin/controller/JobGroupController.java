@@ -2,14 +2,14 @@ package com.xxl.job.admin.controller;
 
 import com.xxl.job.admin.core.model.XxlJobGroup;
 import com.xxl.job.admin.core.util.I18nUtil;
-import com.xxl.job.admin.dao.XxlJobGroupDao;
-import com.xxl.job.admin.dao.XxlJobInfoDao;
+import com.xxl.job.admin.mapper.XxlJobGroupMapper;
+import com.xxl.job.admin.mapper.XxlJobInfoMapper;
+import com.xxl.job.admin.msg.ListRestResponse;
 import com.xxl.job.core.biz.model.ReturnT;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -18,28 +18,26 @@ import java.util.List;
  * job group controller
  * @author xuxueli 2016-10-02 20:52:56
  */
-@Controller
+@RestController
 @RequestMapping("/jobgroup")
+@Api(description="执行器管理接口")
 public class JobGroupController {
 
 	@Resource
-	public XxlJobInfoDao xxlJobInfoDao;
+	public XxlJobInfoMapper xxlJobInfoMapper;
 	@Resource
-	public XxlJobGroupDao xxlJobGroupDao;
+	public XxlJobGroupMapper xxlJobGroupMapper;
 
-	@RequestMapping
-	public String index(Model model) {
-
+	@ApiOperation(value="查询执行器管理接口", notes="")
+	@GetMapping("")
+	public ListRestResponse<XxlJobGroup> index() {
 		// job group (executor)
-		List<XxlJobGroup> list = xxlJobGroupDao.findAll();
-
-		model.addAttribute("list", list);
-		return "jobgroup/jobgroup.index";
+		return new ListRestResponse<XxlJobGroup>().rel(true).result(xxlJobGroupMapper.findAll());
 	}
 
-	@RequestMapping("/save")
-	@ResponseBody
-	public ReturnT<String> save(XxlJobGroup xxlJobGroup){
+	@ApiOperation(value="新增执行器接口", notes="")
+	@PostMapping("/save")
+	public ReturnT<String> save(@RequestBody XxlJobGroup xxlJobGroup){
 
 		// valid
 		if (xxlJobGroup.getAppName()==null || StringUtils.isBlank(xxlJobGroup.getAppName())) {
@@ -63,13 +61,13 @@ public class JobGroupController {
 			}
 		}
 
-		int ret = xxlJobGroupDao.save(xxlJobGroup);
-		return (ret>0)?ReturnT.SUCCESS:ReturnT.FAIL;
+		int ret = xxlJobGroupMapper.save(xxlJobGroup);
+		return (ret>0)? ReturnT.SUCCESS: ReturnT.FAIL;
 	}
 
-	@RequestMapping("/update")
-	@ResponseBody
-	public ReturnT<String> update(XxlJobGroup xxlJobGroup){
+	@ApiOperation(value="更新执行器接口", notes="")
+	@PutMapping("/update")
+	public ReturnT<String> update(@RequestBody XxlJobGroup xxlJobGroup){
 		// valid
 		if (xxlJobGroup.getAppName()==null || StringUtils.isBlank(xxlJobGroup.getAppName())) {
 			return new ReturnT<String>(500, (I18nUtil.getString("system_please_input")+"AppName") );
@@ -92,27 +90,27 @@ public class JobGroupController {
 			}
 		}
 
-		int ret = xxlJobGroupDao.update(xxlJobGroup);
-		return (ret>0)?ReturnT.SUCCESS:ReturnT.FAIL;
+		int ret = xxlJobGroupMapper.update(xxlJobGroup);
+		return (ret>0)? ReturnT.SUCCESS: ReturnT.FAIL;
 	}
 
-	@RequestMapping("/remove")
-	@ResponseBody
-	public ReturnT<String> remove(int id){
+	@ApiOperation(value="删除执行器接口", notes="")
+	@DeleteMapping("/remove/{id}")
+	public ReturnT<String> remove(@PathVariable int id){
 
 		// valid
-		int count = xxlJobInfoDao.pageListCount(0, 10, id, null, null);
+		int count = xxlJobInfoMapper.pageListCount(0, 10, id, null, null);
 		if (count > 0) {
 			return new ReturnT<String>(500, I18nUtil.getString("jobgroup_del_limit_0") );
 		}
 
-		List<XxlJobGroup> allList = xxlJobGroupDao.findAll();
+		List<XxlJobGroup> allList = xxlJobGroupMapper.findAll();
 		if (allList.size() == 1) {
 			return new ReturnT<String>(500, I18nUtil.getString("jobgroup_del_limit_1") );
 		}
 
-		int ret = xxlJobGroupDao.remove(id);
-		return (ret>0)?ReturnT.SUCCESS:ReturnT.FAIL;
+		int ret = xxlJobGroupMapper.remove(id);
+		return (ret>0)? ReturnT.SUCCESS: ReturnT.FAIL;
 	}
 
 }
